@@ -1,14 +1,33 @@
-resource "azurerm_linux_virtual_machine_scale_set" "main" {
-  name                = "${var.region}-vmss"
+resource "azurerm_resource_group" "main" {
+  name     = "${var.environment}-resources"
+  location = var.region
+}
+
+resource "azurerm_virtual_network" "main" {
+  name                = "${var.environment}-network"
   resource_group_name = azurerm_resource_group.main.name
-  region              = azurerm_resource_group.main.region
+  location            = azurerm_resource_group.main.location
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "internal" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.main.name
+  virtual_network_name = azurerm_virtual_network.main.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "main" {
+  name                = "${var.environment}-vmss"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
   sku                 = "Standard_F2"
   instances           = 1
   admin_username      = "adminuser"
 
   admin_ssh_key {
     username   = "adminuser"
-    public_key = file("~/.ssh/id_rsa.pub")
+    public_key = file("/home/azureuser/.ssh/id_rsa.pub")
   }
 
   source_image_reference {
@@ -18,8 +37,13 @@ resource "azurerm_linux_virtual_machine_scale_set" "main" {
     version   = "latest"
   }
 
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
   network_interface {
-    name    = "example"
+    name    = "vmss"
     primary = true
 
     ip_configuration {
@@ -28,29 +52,20 @@ resource "azurerm_linux_virtual_machine_scale_set" "main" {
       subnet_id = azurerm_subnet.internal.id
     }
   }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  lifecycle {
-    ignore_changes = ["instances"]
-  }
 }
 
 resource "azurerm_monitor_autoscale_setting" "main" {
   name                = "autoscale-config"
   resource_group_name = azurerm_resource_group.main.name
-  region              = azurerm_resource_group.main.region
+  location            = azurerm_resource_group.main.location
   target_resource_id  = azurerm_linux_virtual_machine_scale_set.main.id
 
   profile {
-    name = "AutoScale"
+    name = "InHours"
 
     capacity {
       default = 1
-      minimum = 0
+      minimum = 1
       maximum = 3
     }
 
@@ -103,7 +118,7 @@ resource "azurerm_monitor_autoscale_setting" "main" {
   }
 
   profile {
-    name = "Downscale"
+    name = "OutOfHours"
 
     capacity {
       default = 0

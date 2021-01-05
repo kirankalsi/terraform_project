@@ -1,3 +1,7 @@
+variable "environment" {
+  description = "environment"
+}
+
 variable "region" {
   description = "region"
 }

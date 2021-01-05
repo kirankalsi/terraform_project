@@ -3,10 +3,10 @@ provider "azurerm" {
 }
 
 module "Paris" {
-  source = "./modules"
+  source = "./scale-set"
   environment = "staging"
   region = "francecentral"
-  timezone = "GMT Standard Time"
+  timezone = "Central Europe Standard Time"
   out_hour = 22
   out_minute = 30
   in_hour = 2
@@ -14,7 +14,7 @@ module "Paris" {
 }
 
 module "London" {
-  source = "./modules"
+  source = "./scale-set"
   environment = "development"
   region = "uksouth"
   timezone = "GMT Standard Time"
@@ -25,10 +25,10 @@ module "London" {
 }
 
 module "Mumbai" {
-  source = "./modules"
+  source = "./scale-set"
   environment = "production"
   region = "eastasia"
-  timezone = "GMT Standard Time"
+  timezone = "India Standard Time"
   out_hour = 22
   out_minute = 30
   in_hour = 2

@@ -97,10 +97,10 @@ resource "azurerm_monitor_autoscale_setting" "main" {
     recurrence {
       timezone  = var.timezone
       days      = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-      hours     = var.start_time
-      minutes   = [0]
+      hours     = [var.in_hour]
+      minutes   = [var.in_minute]
     }
-   }
+  }
 
   profile {
     name = "Downscale"
@@ -134,8 +134,8 @@ resource "azurerm_monitor_autoscale_setting" "main" {
     recurrence {
       timezone  = var.timezone
       days      = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-      hours     = var.stop_time
-      minutes   = [0]
+      hours     = [var.out_hour]
+      minutes   = [var.out_minute]
     }
   }
 } 
